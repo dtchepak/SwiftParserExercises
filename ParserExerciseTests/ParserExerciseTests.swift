@@ -209,6 +209,29 @@ public class FlatMapParserTests : XCTestCase {
     }
 }
 
+// Return a parser that puts its input into the first parser, then:
+//
+//   * if that parser succeeds with a value (a), ignore that value
+//     but put the remaining input into the second given parser.
+//
+//   * if that parser fails with an error the returned parser fails with that error.
+//
+// Hint: Use Parser.flatMap
+public func >>><A,B>(first : Parser<A>, second : Parser<B>) -> Parser<B> {
+    //return TODO()
+    return first.flatMap({ _ in second })
+}
+
+public class SkipParserTests : XCTestCase {
+    func testSkipParser() {
+        let result = (character() >>> valueParser("x")).parse("abc")
+        assertEqual(result, succeed("bc", "x"))
+    }
+    func testSkipParserWhenFirstParserFails() {
+        let result = (character() >>> valueParser("x")).parse("")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
 
 
 // END EXERCISES
@@ -229,6 +252,28 @@ func assertEqual(actual : ParseResult<Character>, expected : ParseResult<Charact
 func toUpper(c : Character) -> Character {
     return first(String(c).uppercaseString) ?? c
 }
+
+infix operator <^> {
+associativity left
+precedence 138
+}
+infix operator <*> {
+associativity left
+precedence 138
+}
+infix operator >>- {
+associativity left
+precedence 90
+}
+infix operator >>> {
+associativity left
+precedence 90
+}
+infix operator ||| {
+associativity left
+precedence 100
+}
+
 
 // From: https://github.com/typelift/Swiftx/blob/e0997a4b43fab5fb0f3d76506f7c2124b718920e/Swiftx/Box.swift
 /// An immutable reference type holding a singular value.
