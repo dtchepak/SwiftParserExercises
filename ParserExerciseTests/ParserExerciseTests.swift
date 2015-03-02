@@ -233,6 +233,35 @@ public class SkipParserTests : XCTestCase {
     }
 }
 
+// Return a parser that tries the first parser for a successful value.
+//
+//   * If the first parser succeeds then use this parser.
+//
+//   * If the first parser fails, try the second parser.
+public func |||<A>(first: Parser<A>, second:Parser<A>) -> Parser<A> {
+    //return TODO()
+    return Parser({ s in
+        switch first.parse(s) {
+        case .ErrorResult(_): return second.parse(s)
+        case .Result(let i, let v): return .Result(i, v)
+        }
+    })
+}
+
+public class AlternativeParserTests : XCTestCase {
+    func testAltWhenFirstSucceeds() {
+        let result = (character() ||| valueParser("v")).parse("abc")
+        assertEqual(result, succeed("bc", "a"))
+    }
+    func testAltWhenFirstFails() {
+        let result = (failed() ||| valueParser("v")).parse("")
+        assertEqual(result, succeed("", "v"))
+    }
+    func testAltWhenFirstFailsDueToLackOfInput() {
+        let result = (character() ||| valueParser("v")).parse("")
+        assertEqual(result, succeed("", "v"))
+    }
+}
 
 // END EXERCISES
 
