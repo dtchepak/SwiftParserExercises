@@ -139,7 +139,7 @@ class CharacterParserTests : XCTestCase {
 extension Parser {
     // Return a parser that maps any succeeding result with the given function.
     // Hint: will require the construction of a `Parser<B>` and pattern matching on the result of `self.parse`.
-    public func mapParser<B>(f : A -> B) -> Parser<B> {
+    public func map<B>(f : A -> B) -> Parser<B> {
         //return TODO()
         return Parser<B>({ s in
             switch self.parse(s) {
@@ -152,16 +152,52 @@ extension Parser {
 
 class MapParserTests : XCTestCase {
     func testMap() {
-        let result = character().mapParser(toUpper).parse("abc")
+        let result = character().map(toUpper).parse("abc")
         assertEqual(result, succeed("bc", "A"))
     }
     func testMapAgain() {
-        let result = valueParser(10).mapParser({ $0+1 }).parse("abc")
+        let result = valueParser(10).map({ $0+1 }).parse("abc")
         assertEqual(result, succeed("abc", 11))
     }
     func testMapWithErrorResult() {
-        let result = failed().mapParser({ $0 + 1 }).parse("abc")
+        let result = failed().map({ $0 + 1 }).parse("abc")
         assertEqual(result, failParse())
+    }
+}
+
+extension Parser {
+    // Return a parser based on this parser (`self`). The new parser should run its input through
+    // this parser, then:
+    //
+    //   * if this parser succeeds with a value (type A), put that value into the given function
+    //     then put the remaining input into the resulting parser.
+    //
+    //   * if this parser fails with an error the returned parser fails with that error.
+    //
+    public func flatMap<B>(f : A -> Parser<B>) -> Parser<B> {
+        //return TODO()
+        return Parser<B>({ s in
+            switch self.parse(s) {
+            case .ErrorResult(let e): return failWithParseError(e)
+            case .Result(let i, let v): return f(v.value).parse(i)
+            }
+        })
+    }
+}
+
+public class FlatMapParserTests : XCTestCase {
+    let parseWhileX : Parser<Character> =
+                character().flatMap({ c in
+                    if c == "x" { return valueParser("!") } // if c=="x", return "!" value
+                    else { return character() }             // else skip this character and parse the next one
+                })
+    func testFlatMap() {
+        let result = parseWhileX.parse("abcd")
+        assertEqual(result, succeed("cd", "b"))
+    }
+    func testFlatMapAgain() {
+        let result = parseWhileX.parse("xabc")
+        assertEqual(result, succeed("abc", "!"))
     }
 }
 
