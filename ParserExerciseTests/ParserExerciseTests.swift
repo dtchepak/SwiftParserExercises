@@ -58,12 +58,13 @@ public func ==<A: Equatable>(lhs: ParseResult<A>, rhs: ParseResult<A>) -> Bool {
     }
 }
 
-
+// Convenience functions for returning ParseResult<A> values.
 public func succeed<A>(remainingInput : Input, value : A) -> ParseResult<A> { return .Result(remainingInput, Box(value)) }
 public func failWithUnexpectedEof<A>() -> ParseResult<A> { return .ErrorResult(.UnexpectedEof) }
 public func failWithExpectedEof<A>(i : Input) -> ParseResult<A> { return .ErrorResult(.ExpectedEof(i)) }
 public func failWithUnexpectedChar<A>(c : Character) -> ParseResult<A> { return .ErrorResult(.UnexpectedChar(c)) }
 public func failParse<A>() -> ParseResult<A>{ return .ErrorResult(.Failed("Parse failed")) }
+public func failWithParseError<A>(e : ParseError) -> ParseResult<A> { return .ErrorResult(e) }
 
 
 // A Parser<A> wraps a function that takes some input and returns either:
@@ -91,7 +92,7 @@ public func valueParser<A>(a : A) -> Parser<A> {
 class ValueParserTests : XCTestCase {
     func testValueParser() {
         let result = valueParser(2).parse("hello")
-        XCTAssert(result == succeed("hello", 2), result.description)
+        assertEqual(result, succeed("hello", 2))
     }
 }
 
@@ -104,7 +105,7 @@ public func failed<A>() -> Parser<A> {
 class FailedParserTests : XCTestCase {
     func testFailedParser() {
         let result : ParseResult<Int> = failed().parse("abc")
-        XCTAssert(result == failParse(), result.description)
+        assertEqual(result, failParse())
     }
 }
 
@@ -127,16 +128,58 @@ public func character() -> Parser<Character> {
 class CharacterParserTests : XCTestCase {
     func testCharacter() {
         let result = character().parse("abcd")
-        XCTAssert(result == succeed("bcd", "a"), result.description)
+        assertEqual(result, succeed("bcd", "a"))
     }
     func testCharacterWithEmptyInput() {
         let result = character().parse("")
-        XCTAssert(result == failWithUnexpectedEof(), result.description)
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+extension Parser {
+    // Return a parser that maps any succeeding result with the given function.
+    // Hint: will require the construction of a `Parser<B>` and pattern matching on the result of `self.parse`.
+    public func mapParser<B>(f : A -> B) -> Parser<B> {
+        //return TODO()
+        return Parser<B>({ s in
+            switch self.parse(s) {
+            case .ErrorResult(let e): return failWithParseError(e)
+            case .Result(let i, let v): return succeed(i, f(v.value))
+            }
+        })
+    }
+}
+
+class MapParserTests : XCTestCase {
+    func testMap() {
+        let result = character().mapParser({ _ in "?" }).parse("abc")
+        assertEqual(result, succeed("bc", "?"))
+    }
+    func testMapAgain() {
+        let result = valueParser(10).mapParser({ $0+1 }).parse("abc")
+        assertEqual(result, succeed("abc", 11))
+    }
+    func testMapWithErrorResult() {
+        let result = failed().mapParser({ $0 + 1 }).parse("abc")
+        assertEqual(result, failParse())
     }
 }
 
 
 
+// END EXERCISES
+
+
+// Assertion helpers
+func assertEqual(actual : ParseResult<String>, expected : ParseResult<String>) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+}
+func assertEqual(actual : ParseResult<Int>, expected : ParseResult<Int>) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+}
+func assertEqual(actual : ParseResult<Character>, expected : ParseResult<Character>) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+}
 
 // From: https://github.com/typelift/Swiftx/blob/e0997a4b43fab5fb0f3d76506f7c2124b718920e/Swiftx/Box.swift
 /// An immutable reference type holding a singular value.
