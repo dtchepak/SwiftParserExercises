@@ -152,8 +152,8 @@ extension Parser {
 
 class MapParserTests : XCTestCase {
     func testMap() {
-        let result = character().mapParser({ _ in "?" }).parse("abc")
-        assertEqual(result, succeed("bc", "?"))
+        let result = character().mapParser(toUpper).parse("abc")
+        assertEqual(result, succeed("bc", "A"))
     }
     func testMapAgain() {
         let result = valueParser(10).mapParser({ $0+1 }).parse("abc")
@@ -179,6 +179,11 @@ func assertEqual(actual : ParseResult<Int>, expected : ParseResult<Int>) {
 }
 func assertEqual(actual : ParseResult<Character>, expected : ParseResult<Character>) {
     XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+}
+
+// Misc
+func toUpper(c : Character) -> Character {
+    return first(String(c).uppercaseString) ?? c
 }
 
 // From: https://github.com/typelift/Swiftx/blob/e0997a4b43fab5fb0f3d76506f7c2124b718920e/Swiftx/Box.swift
