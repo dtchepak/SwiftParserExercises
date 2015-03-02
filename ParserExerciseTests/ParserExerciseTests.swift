@@ -84,7 +84,8 @@ public func unexpectedCharParser<A>(c : Character) -> Parser<A> {
 
 // Return a parser that always succeeds with the given value and consumes no input
 public func valueParser<A>(a : A) -> Parser<A> {
-    return TODO()
+    //return TODO()
+    return Parser({ s in succeed(s, a) })
 }
 
 class ValueParserTests : XCTestCase {
@@ -94,6 +95,45 @@ class ValueParserTests : XCTestCase {
     }
 }
 
+// Return a parser that always fails with ParseError.failed.
+public func failed<A>() -> Parser<A> {
+    //return TODO()
+    return Parser({ _ in failParse() })
+}
+
+class FailedParserTests : XCTestCase {
+    func testFailedParser() {
+        let result : ParseResult<Int> = failed().parse("abc")
+        XCTAssert(result == failParse(), result.description)
+    }
+}
+
+
+// Return a parser that succeeds with a character off the input or fails with an error if the input is empty.
+// String manipulation examples: 
+//      http://sketchytech.blogspot.com.au/2014/08/swift-pure-swift-method-for-returning.html
+public func character() -> Parser<Character> {
+    //return TODO()
+    return Parser({ s in
+        if let c = first(s) {
+            let rest = dropFirst(s)
+            return succeed(rest, c)
+        } else {
+            return failWithUnexpectedEof()
+        }
+    })
+}
+
+class CharacterParserTests : XCTestCase {
+    func testCharacter() {
+        let result = character().parse("abcd")
+        XCTAssert(result == succeed("bcd", "a"), result.description)
+    }
+    func testCharacterWithEmptyInput() {
+        let result = character().parse("")
+        XCTAssert(result == failWithUnexpectedEof(), result.description)
+    }
+}
 
 
 
