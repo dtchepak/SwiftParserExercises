@@ -186,18 +186,26 @@ extension Parser {
 }
 
 public class FlatMapParserTests : XCTestCase {
-    let parseWhileX : Parser<Character> =
+    let skipOneX : Parser<Character> =
                 character().flatMap({ c in
-                    if c == "x" { return valueParser("!") } // if c=="x", return "!" value
-                    else { return character() }             // else skip this character and parse the next one
+                    if c == "x" { return character() } // if c=="x", skip this character and parse the next one
+                    else { return valueParser(c) }     // else return this character
                 })
     func testFlatMap() {
-        let result = parseWhileX.parse("abcd")
-        assertEqual(result, succeed("cd", "b"))
+        let result = skipOneX.parse("abcd")
+        assertEqual(result, succeed("bcd", "a"))
     }
     func testFlatMapAgain() {
-        let result = parseWhileX.parse("xabc")
-        assertEqual(result, succeed("abc", "!"))
+        let result = skipOneX.parse("xabc")
+        assertEqual(result, succeed("bc", "a"))
+    }
+    func testFlatMapWithNoInput() {
+        let result = skipOneX.parse("")
+        assertEqual(result, failWithUnexpectedEof());
+    }
+    func testFlatMapRunningOutOfInput() {
+        let result = skipOneX.parse("x")
+        assertEqual(result, failWithUnexpectedEof());
     }
 }
 
