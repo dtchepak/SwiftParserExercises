@@ -248,16 +248,16 @@ public func |||<A>(first: Parser<A>, second:Parser<A>) -> Parser<A> {
     })
 }
 
-public class AlternativeParserTests : XCTestCase {
-    func testAltWhenFirstSucceeds() {
+public class OrParserTests : XCTestCase {
+    func testOrWhenFirstSucceeds() {
         let result = (character() ||| valueParser("v")).parse("abc")
         assertEqual(result, succeed("bc", "a"))
     }
-    func testAltWhenFirstFails() {
+    func testOrWhenFirstFails() {
         let result = (failed() ||| valueParser("v")).parse("")
         assertEqual(result, succeed("", "v"))
     }
-    func testAltWhenFirstFailsDueToLackOfInput() {
+    func testOrWhenFirstFailsDueToLackOfInput() {
         let result = (character() ||| valueParser("v")).parse("")
         assertEqual(result, succeed("", "v"))
     }
@@ -335,7 +335,50 @@ class SatisfyParserTests : XCTestCase {
     }
 }
 
+// Return a parser that produces the given character but fails if
+//
+//   * The input is empty.
+//   * The produced character is not equal to the given character.
+//
+// Hint: Use the satisfy function.
+public func charIs(c : Character) -> Parser<Character> {
+    //return TODO()
+    return satisfy({ cc in c == cc })
+}
 
+class CharIsParserTests : XCTestCase {
+    func testCharIs() {
+        let result = charIs("x").parse("xyz")
+        assertEqual(result, succeed("yz", "x"))
+    }
+    func testCharIsWhenItIsnt() {
+        let result = charIs("x").parse("abc")
+        assertEqual(result, failWithUnexpectedChar("a"))
+    }
+}
+
+// Return a parser that produces a character between "0" and "9" but fails if
+//
+//   * The input is empty.
+//   * The produced character is not a digit.
+//
+// Hint: - Use the satisfy and isDigit functions.
+//       - This returns a Parser<Character>, not a Parser<Int>
+public func digit() -> Parser<Character> {
+    //return TODO()
+    return satisfy(isDigit)
+}
+
+class DigitParserTests : XCTestCase {
+    func testDigit() {
+        let result = digit().parse("123")
+        assertEqual(result, succeed("23", "1"))
+    }
+    func testDigitWhenItIsnt() {
+        let result = digit().parse("abc")
+        assertEqual(result, failWithUnexpectedChar("a"))
+    }
+}
 // END EXERCISES
 
 
@@ -369,27 +412,37 @@ func isUpperCase(c : Character) -> Bool {
     }
     return false
 }
+func isDigit(c : Character) -> Bool {
+    return ("0"..."9") ~= c
+}
 
-
-infix operator <^> {
+// Operators
+infix operator <^> {    // map
 associativity left
 precedence 138
 }
-infix operator <*> {
+infix operator <*> {    // apply
 associativity left
 precedence 138
 }
-infix operator >>- {
+infix operator >>- {    // flatMap
 associativity left
 precedence 90
 }
-infix operator >>> {
+infix operator >>> {    // skip
 associativity left
 precedence 90
 }
-infix operator ||| {
+infix operator ||| {    // or
 associativity left
 precedence 100
+}
+
+public func <^><A,B>(f : A->B, p: Parser<A>) -> Parser<B> {
+    return p.map(f)
+}
+public func >>-<A,B>(p : Parser<A>, f : A -> Parser<B>) -> Parser<B> {
+    return p.flatMap(f)
 }
 
 
