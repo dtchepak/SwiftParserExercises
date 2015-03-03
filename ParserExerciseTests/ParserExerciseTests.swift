@@ -312,17 +312,11 @@ class ListParserTests : XCTestCase {
 
 
 // Assertion helpers
-func assertEqual(actual : ParseResult<String>, expected : ParseResult<String>) {
-    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+func assertEqual<T : Equatable>(actual : ParseResult<T>, expected : ParseResult<T>, file: String = __FILE__, line: UInt = __LINE__) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)", file: file, line: line)
 }
-func assertEqual(actual : ParseResult<Int>, expected : ParseResult<Int>) {
-    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
-}
-func assertEqual(actual : ParseResult<Character>, expected : ParseResult<Character>) {
-    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
-}
-func assertEqual(actual : ParseResult<[Character]>, expected : ParseResult<[Character]>) {
-    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+func assertEqual<T : Equatable>(actual : ParseResult<[T]>, expected : ParseResult<[T]>, file: String = __FILE__, line: UInt = __LINE__) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)", file: file, line: line)
 }
 
 public func ==<A: Equatable>(lhs: ParseResult<[A]>, rhs: ParseResult<[A]>) -> Bool {
