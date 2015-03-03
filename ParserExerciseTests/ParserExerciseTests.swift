@@ -263,6 +263,51 @@ public class AlternativeParserTests : XCTestCase {
     }
 }
 
+
+// Return a parser that continues producing a list of values from the given parser.
+// If there are no values that can be parsed from `p`, the returned parser should produce an empty list.
+//
+// Hint: - Use valueParser, |||, and atLeast1 parser (defined below).
+//       - list and atLeast1 are mutually recursive calls!
+public func list<A>(p : Parser<A>) -> Parser<[A]> {
+    //return TODO()
+    return atLeast1(p) ||| valueParser([])
+    
+}
+// Return a parser that produces at least one value from the given parser then
+// continues producing a list of values from the given parser (to ultimately produce a non-empty list).
+// The returned parser fails if the input is empty.
+//
+// Hint: - Use flatMap, valueParser, and list (defined above)
+//       - list and atLeast1 are mutually recursive calls!
+public func atLeast1<A>(p : Parser<A>) -> Parser<[A]> {
+    //return TODO()
+    return p.flatMap({ a in
+        list(p).flatMap( { aa in
+            valueParser([a] + aa) } )
+    })
+}
+
+class ListParserTests : XCTestCase {
+    func testList() {
+        let result = list(character()).parse("abc")
+        assertEqual(result, succeed("", ["a", "b", "c"]))
+    }
+    func testListWithNoInput() {
+        let result = list(character()).parse("")
+        assertEqual(result, succeed("", []))
+    }
+    func testAtLeastOne() {
+        let result = atLeast1(character()).parse("abc")
+        assertEqual(result, succeed("", ["a", "b", "c"]))
+    }
+    func testAtLeast1WithNoInput() {
+        let result = atLeast1(character()).parse("")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+
 // END EXERCISES
 
 
@@ -276,7 +321,17 @@ func assertEqual(actual : ParseResult<Int>, expected : ParseResult<Int>) {
 func assertEqual(actual : ParseResult<Character>, expected : ParseResult<Character>) {
     XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
 }
+func assertEqual(actual : ParseResult<[Character]>, expected : ParseResult<[Character]>) {
+    XCTAssert(actual == expected, "Expected: \(expected.description), Actual: \(actual.description)")
+}
 
+public func ==<A: Equatable>(lhs: ParseResult<[A]>, rhs: ParseResult<[A]>) -> Bool {
+    switch (lhs, rhs) {
+    case (.ErrorResult(let e1), .ErrorResult(let e2)): return e1 == e2
+    case (.Result(let i1, let a1), .Result(let i2, let a2)): return i1 == i2 && a1.value == a2.value
+    default: return false
+    }
+}
 // Misc
 func toUpper(c : Character) -> Character {
     return first(String(c).uppercaseString) ?? c
