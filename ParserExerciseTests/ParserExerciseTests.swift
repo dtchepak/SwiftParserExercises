@@ -58,7 +58,7 @@ public func ==<A: Equatable>(lhs: ParseResult<A>, rhs: ParseResult<A>) -> Bool {
     }
 }
 
-// Convenience functions for returning ParseResult<A> values.
+// Convenience functions for creating ParseResult<A> values.
 public func succeed<A>(remainingInput : Input, value : A) -> ParseResult<A> { return .Result(remainingInput, Box(value)) }
 public func failWithUnexpectedEof<A>() -> ParseResult<A> { return .ErrorResult(.UnexpectedEof) }
 public func failWithExpectedEof<A>(i : Input) -> ParseResult<A> { return .ErrorResult(.ExpectedEof(i)) }
@@ -288,6 +288,7 @@ public func atLeast1<A>(p : Parser<A>) -> Parser<[A]> {
     })
 }
 
+// list and atLeast1 should both be completed before these tests should pass
 class ListParserTests : XCTestCase {
     func testList() {
         let result = list(character()).parse("abc")
@@ -304,6 +305,33 @@ class ListParserTests : XCTestCase {
     func testAtLeast1WithNoInput() {
         let result = atLeast1(character()).parse("")
         assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+// Return a parser that produces a character but fails if
+//
+//   * The input is empty.
+//   * The character does not satisfy the given predicate.
+//
+// Hint: The flatMap, valueParser, unexpectedCharParser and character functions will be helpful here.
+public func satisfy(p : Character -> Bool) -> Parser<Character> {
+    //return TODO()
+    return character().flatMap({ c in
+        if p(c) {
+            return valueParser(c)
+        } else {
+            return unexpectedCharParser(c)
+        }
+    })
+}
+class SatisfyParserTests : XCTestCase {
+    func testParseUpper() {
+        let result = satisfy(isUpperCase).parse("Abc")
+        assertEqual(result, succeed("bc", "A"))
+    }
+    func testParseUpperWithLowercaseInput() {
+        let result = satisfy(isUpperCase).parse("abc")
+        assertEqual(result, failWithUnexpectedChar("a"))
     }
 }
 
@@ -326,10 +354,22 @@ public func ==<A: Equatable>(lhs: ParseResult<[A]>, rhs: ParseResult<[A]>) -> Bo
     default: return false
     }
 }
-// Misc
+// Character functions
 func toUpper(c : Character) -> Character {
     return first(String(c).uppercaseString) ?? c
 }
+func isUpperCase(c : Character) -> Bool {
+    let cset = NSCharacterSet.uppercaseLetterCharacterSet()
+    let s = String(c).utf16
+    // If unicode char has an uppercase component, let's say it is uppercase
+    for codeUnit in s {
+        if cset.characterIsMember(codeUnit) {
+            return true
+        }
+    }
+    return false
+}
+
 
 infix operator <^> {
 associativity left
