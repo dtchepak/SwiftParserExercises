@@ -507,7 +507,7 @@ class LowerUpperAlphaExamples : XCTestCase {
 //
 // Extension exercise:
 // - implement sequenceParser using the apply operator <*> (this is TODO at the end of this file).
-//   Use reduceRight, valueParser, <*> and consc (curried cons function)
+//   Use reduceRight, valueParser, <*> and cons2 (curried cons function)
 public func sequenceParser<A>(pp : [Parser<A>]) -> Parser<[A]> {
     //return TODO()
     // Using flatMap:
@@ -520,7 +520,7 @@ public func sequenceParser<A>(pp : [Parser<A>]) -> Parser<[A]> {
     */
     // Using apply:
     return pp.reduceRight( valueParser([]),
-        combine: { (p,acc) in consc <^> p <*> acc })
+        combine: { (p,acc) in cons2 <^> p <*> acc })
 }
 
 class SequenceParserExamples : XCTestCase {
@@ -534,6 +534,30 @@ class SequenceParserExamples : XCTestCase {
         assertEqual(result, failWithUnexpectedChar("b"))
     }
 }
+
+// Return a parser that produces the given number of values off the given parser.
+// This parser fails if the given parser fails in the attempt to produce the given number of values.
+//
+// Hint: Use sequenceParser and replicate (replicate : (Integer, A) -> [A])
+public func thisMany<A>(n : Int, p : Parser<A>) -> Parser<[A]> {
+    //return TODO()
+    return sequenceParser(replicate(n, p))
+}
+
+class ThisManyExamples : XCTestCase {
+    func testThisMany() {
+        let result = thisMany(4, upper()).map(charsToString).parse("ABCDefg")
+        assertEqual(result, succeed("efg", "ABCD"))
+    }
+    func testThisManyWithUnexpectedChar() {
+        let result = thisMany(4, upper()).map(charsToString).parse("AbCDefg")
+        assertEqual(result, failWithUnexpectedChar("b"))
+    }
+}
+
+/*
+
+*/
 
 // END EXERCISES
 
@@ -569,7 +593,7 @@ func charIsInSet(cset : NSCharacterSet)(c : Character) -> Bool {
 func cons<A>(a :A, aa:[A]) -> [A] {
     return [a] + aa
 }
-func consc<A>(a :A)-> [A] -> [A] {
+func cons2<A>(a :A)-> [A] -> [A] {
     return { aa in [a] + aa }
 }
 extension Array {
@@ -580,6 +604,9 @@ extension Array {
         }
         return v
     }
+}
+func replicate<A>(n : Int, a :A) -> [A] {
+    return (1...n).map({ _ in a })
 }
 
 
