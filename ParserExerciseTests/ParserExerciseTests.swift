@@ -499,9 +499,41 @@ class LowerUpperAlphaExamples : XCTestCase {
     }
 }
 
-/*
+// Return a parser that sequences the given list of parsers by producing all their results
+// but fails on the first failing parser of the list.
+//
+// Hint: - Use flatMap, valueParser and Array.reduceRight.
+//       - There is a `cons : (A, [A]) -> [A]` helper function if that helps.
+//
+// Extension exercise:
+// - implement sequenceParser using the apply operator <*> (this is TODO at the end of this file).
+//   Use reduceRight, valueParser, <*> and consc (curried cons function)
+public func sequenceParser<A>(pp : [Parser<A>]) -> Parser<[A]> {
+    //return TODO()
+    // Using flatMap:
+    /*
+    return pp.reduceRight(valueParser([]),
+                combine: { (p, acc) in
+                                p.flatMap({ a in
+                                acc.flatMap({ aa in
+                                              valueParser(cons(a, aa)) })})})
+    */
+    // Using apply:
+    return pp.reduceRight( valueParser([]),
+        combine: { (p,acc) in consc <^> p <*> acc })
+}
 
-*/
+class SequenceParserExamples : XCTestCase {
+    let exampleParsers = [ character(), charIs("x"), upper() ]
+    func testSequence() {
+        let result = sequenceParser(exampleParsers).map(charsToString).parse("axCdef")
+        assertEqual(result, succeed("def", "axC"))
+    }
+    func testSequenceWithUnexpectedChar() {
+        let result = sequenceParser(exampleParsers).map(charsToString).parse("abCdef")
+        assertEqual(result, failWithUnexpectedChar("b"))
+    }
+}
 
 // END EXERCISES
 
@@ -533,6 +565,21 @@ func charIsInSet(cset : NSCharacterSet)(c : Character) -> Bool {
         }
     }
     return false
+}
+func cons<A>(a :A, aa:[A]) -> [A] {
+    return [a] + aa
+}
+func consc<A>(a :A)-> [A] -> [A] {
+    return { aa in [a] + aa }
+}
+extension Array {
+    func reduceRight<A>(defaultValue: A, combine: (T, A) -> A) -> A {
+        var v = defaultValue
+        for item in self.reverse() {
+            v = combine(item, v)
+        }
+        return v
+    }
 }
 
 
@@ -601,6 +648,10 @@ public func <^><A,B>(f : A->B, p: Parser<A>) -> Parser<B> {
 }
 public func >>-<A,B>(p : Parser<A>, f : A -> Parser<B>) -> Parser<B> {
     return p.flatMap(f)
+}
+public func <*><A,B>(f : Parser<A->B>, p: Parser<A>) -> Parser<B> {
+    //return TODO()
+    return f.flatMap({ ff in p.map(ff) })
 }
 
 public func •<A,B,C> (f : B->C, g : A->B) -> (A->C) {
