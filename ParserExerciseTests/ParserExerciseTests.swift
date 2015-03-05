@@ -504,10 +504,6 @@ class LowerUpperAlphaExamples : XCTestCase {
 //
 // Hint: - Use flatMap, valueParser and Array.reduceRight.
 //       - There is a `cons : (A, [A]) -> [A]` helper function if that helps.
-//
-// Extension exercise:
-// - implement sequenceParser using the apply operator <*> (this is TODO at the end of this file).
-//   Use reduceRight, valueParser, <*> and cons2 (curried cons function)
 public func sequenceParser<A>(pp : [Parser<A>]) -> Parser<[A]> {
     //return TODO()
     // Using flatMap:
@@ -555,9 +551,221 @@ class ThisManyExamples : XCTestCase {
     }
 }
 
-/*
 
-*/
+// Suppose we have a data structure to represent a person. The person data structure has these attributes:
+//     * Age: positive integer
+//     * First Name: non-empty string that starts with a capital letter and is followed by zero or more lower-case letters
+//     * Surname: string that starts with a capital letter and is followed by 5 or more lower-case letters
+//     * Smoker: Boolean value. When parsing, this is represented as a character that must be 'y' or 'n'
+//     * Phone: string of digits, dots or hyphens but must start with a digit and end with a hash (#)
+public struct Person : Printable, Equatable {
+    let age : Int
+    let firstName : String
+    let surname : String
+    let smoker : Bool
+    let phone : String
+    public var description : String {
+        return "Person { age: \(self.age), firstName: \(self.firstName), surname: \(self.surname), smoker: \(self.smoker), phone: \(self.phone) }"
+    }
+}
+
+// Return a parser for age. Age must be a positive integer.
+public func ageParser() -> Parser<Int> {
+    //return TODO()
+    return natural()
+}
+
+// Return a parser for first name.
+// First name must be non-empty, start with a capital letter, and be followed by zero or more lower-case letters
+//
+// Hint: use parser.map(charsToString) to convert a parser of [Character] to a parser of String.
+public func firstNameParser() -> Parser<String> {
+    //return TODO()
+    return (cons2 <^> upper() <*> list(lower())).map(charsToString)
+}
+
+// Return a parser for surname.
+// Surname starts with a capital letter and is followed by 5 or more lower-case letters
+public func surnameParser() -> Parser<String> {
+    //return TODO()
+    return
+        upper()              >>- { a in
+        thisMany(5, lower()) >>- { b in
+        list(lower())        >>- { c in
+                valueParser( charsToString( [a] + b + c) )
+        }}}
+}
+// Return a bool indicating whether a person is a smoker.
+// Smoker field is true if "y", or non-smoker if "n"
+//
+// Hint: use charIs, ||| and valueParser
+public func smokerParser() -> Parser<Bool> {
+    //return TODO()
+    return (charIs("y") >>> valueParser(true)) ||| (charIs("n") >>> valueParser(false))
+}
+
+class SmokerParserExamples : XCTestCase {
+    func testY() {
+        let result = smokerParser().parse("y")
+        assertEqual(result, succeed("", true))
+    }
+    func testN() {
+        let result = smokerParser().parse("n")
+        assertEqual(result, succeed("", false))
+    }
+    func testUnexpectedChar() {
+        let result = smokerParser().parse("x")
+        assertEqual(result, failWithUnexpectedChar("x"))
+    }
+    func testUnexpectedEof() {
+        let result = smokerParser().parse("")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+
+// Write part of a parser for the body of Person's phone number field.
+// This parser will only produce a string of digits, dots or hyphens.
+// It will ignore the overall requirement of a phone number to
+// start with a digit and end with a hash (#).
+//
+// Hint: Use list, digit, ||| and charIs.
+public func phoneBodyParser() -> Parser<String> {
+    //return TODO()
+    return list(digit() ||| charIs("-") ||| charIs(".")).map(charsToString);
+}
+
+class PhoneBodyExamples : XCTestCase {
+    func testPhoneBodyParser() {
+        let result = phoneBodyParser().parse("123-456")
+        assertEqual(result, succeed("", "123-456"))
+    }
+    func testParseUntilUnmatchedCharacter() {
+        let result = phoneBodyParser().parse("123-4a56")
+        assertEqual(result, succeed("a56", "123-4"))
+    }
+    func testParseUntilUnmatchedCharacter2() {
+        let result = phoneBodyParser().parse("a123-456")
+        assertEqual(result, succeed("a123-456", ""))
+    }
+}
+
+// Write a parser for Person.phone. Uses phoneBody, but must start with a digit
+// and end with a hash (#). The parser should parse up to and included the "#", 
+// but not include the hash in the final output. e.g. "123-456#" -> "123-456.
+//
+// Hint: - Use flatMap, valueParser, digit, phoneBodyParser and charIs.
+//       - Use String(c) to convert a Character c to a String.
+public func phoneParser() -> Parser<String> {
+    //return TODO()
+    return digit()           >>- { a in
+           phoneBodyParser() >>- { b in
+           charIs("#")       >>- { c in
+                valueParser(String(a) + b)
+        }}}
+}
+
+class PhoneParserExamples : XCTestCase {
+    func testValidPhone() {
+        let result = phoneParser().parse("123-456#")
+        assertEqual(result, succeed("", "123-456"))
+    }
+    func testValidPhoneWithLeftOvers() {
+        let result = phoneParser().parse("123-456#abc")
+        assertEqual(result, succeed("abc", "123-456"))
+    }
+    func testPhoneNumberWithoutTerminatingHash() {
+        let result = phoneParser().parse("123-456")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+    func testPhoneNumberWithInvalidChar() {
+        let result = phoneParser().parse("a123-456")
+        assertEqual(result, failWithUnexpectedChar("a"))
+    }
+}
+
+// Write a parser for Person with age, firstname, surname, smoker, phone fields separated by one
+// or more spaces. Example of valid Person record: "123 Fred Clarkson y 123-456.789#"
+//
+// Hint Use flatMap,
+//          valueParser,
+//          (>>>),
+//          spaces,
+//          ageParser,
+//          firstNameParser,
+//          surnameParser,
+//          smokerParser,
+//          phoneParser.
+public func personParser() -> Parser<Person> {
+    //return TODO()
+    return
+        ageParser()         >>- { age in
+        spaces()            >>>
+        firstNameParser()   >>- { first in
+        spaces()            >>>
+        surnameParser()     >>- { surname in
+        spaces()            >>>
+        smokerParser()      >>- { smoker in
+        spaces()            >>>
+        phoneParser()       >>- { phone in
+            valueParser(Person(age: age, firstName: first, surname: surname, smoker: smoker, phone: phone))
+    }}}}}
+}
+
+class PersonParserExamples : XCTestCase {
+    func testValid() {
+        let result = personParser().parse("123 Fred Clarkson y 123-456.789#")
+        let expected = Person(age: 123, firstName: "Fred", surname: "Clarkson", smoker: true, phone: "123-456.789")
+        assertEqual(result, succeed("", expected))
+    }
+    func testValidWithLeftOvers() {
+        let result = personParser().parse("123 Fred Clarkson y 123-456.789# rest")
+        let expected = Person(age: 123, firstName: "Fred", surname: "Clarkson", smoker: true, phone: "123-456.789")
+        assertEqual(result, succeed(" rest", expected))
+    }
+    func testEmptyInput() {
+        let result = personParser().parse("")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+    func testInvalidAge() {
+        let result = personParser().parse("12x Fred Clarkson y 123-456.789#")
+        assertEqual(result, failWithUnexpectedChar("x"))
+    }
+    func testInvalidFirstName() {
+        let result = personParser().parse("123 fred Clarkson y 123-456.789#")
+        assertEqual(result, failWithUnexpectedChar("f"))
+    }
+    func testInvalidLastName() {
+        let result = personParser().parse("123 Fred clarkson y 123-456.789#")
+        assertEqual(result, failWithUnexpectedChar("c"))
+    }
+    func testLastNameTooShort() {
+        let result = personParser().parse("123 Fred Cla y 123-456.789#")
+        assertEqual(result, failWithUnexpectedChar(" "))
+    }
+    func testInvalidSmokerField() {
+        let result = personParser().parse("123 Fred Clarkson x 123-456.789#")
+        assertEqual(result, failWithUnexpectedChar("x"))
+    }
+    func testInvalidPhone() {
+        let result = personParser().parse("123 Fred Clarkson y -123-456.789#")
+        assertEqual(result, failWithUnexpectedChar("-"))
+    }
+    func testUnterminatedPhone() {
+        let result = personParser().parse("123 Fred Clarkson y 123-456.789")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+
+// EXTENSIONS
+// - implement apply operator <*>
+public func <*><A,B>(f : Parser<A->B>, p: Parser<A>) -> Parser<B> {
+    //return TODO()
+    return f.flatMap({ ff in p.map(ff) })
+}
+// - implement sequenceParser using the apply operator <*>. Use reduceRight, valueParser, <*> and cons2 (curried cons function)
+// - implement personParser using the apply operator and a curried Person constructor
 
 // END EXERCISES
 
@@ -643,7 +851,13 @@ public func ==<A: Equatable>(lhs: ParseResult<[A]>, rhs: ParseResult<[A]>) -> Bo
     default: return false
     }
 }
-
+public func ==(lhs: Person, rhs: Person) -> Bool {
+    return lhs.age       == rhs.age
+        && lhs.firstName == rhs.firstName
+        && lhs.surname   == rhs.surname
+        && lhs.smoker    == rhs.smoker
+        && lhs.phone     == rhs.phone
+}
 
 // Custom Operators
 infix operator <^> {    // map
@@ -676,11 +890,6 @@ public func <^><A,B>(f : A->B, p: Parser<A>) -> Parser<B> {
 public func >>-<A,B>(p : Parser<A>, f : A -> Parser<B>) -> Parser<B> {
     return p.flatMap(f)
 }
-public func <*><A,B>(f : Parser<A->B>, p: Parser<A>) -> Parser<B> {
-    //return TODO()
-    return f.flatMap({ ff in p.map(ff) })
-}
-
 public func •<A,B,C> (f : B->C, g : A->B) -> (A->C) {
     return  { (x : A) in f(g(x)) }
 }
