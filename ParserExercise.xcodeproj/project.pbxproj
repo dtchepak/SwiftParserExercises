@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E4AB24311AA7FAFF00DE7F4D /* FlatMapPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4AB24301AA7FAFF00DE7F4D /* FlatMapPattern.swift */; };
 		E4CE414A1A974CA2009CD9BF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CE41491A974CA2009CD9BF /* AppDelegate.swift */; };
 		E4CE414C1A974CA2009CD9BF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CE414B1A974CA2009CD9BF /* ViewController.swift */; };
 		E4CE414F1A974CA2009CD9BF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E4CE414D1A974CA2009CD9BF /* Main.storyboard */; };
@@ -26,6 +27,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E4AB24301AA7FAFF00DE7F4D /* FlatMapPattern.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlatMapPattern.swift; sourceTree = "<group>"; };
 		E4CE41441A974CA2009CD9BF /* ParserExercise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParserExercise.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4CE41481A974CA2009CD9BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E4CE41491A974CA2009CD9BF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				E4CE415F1A974CA2009CD9BF /* ParserExerciseTests.swift */,
+				E4AB24301AA7FAFF00DE7F4D /* FlatMapPattern.swift */,
 				E4CE415D1A974CA2009CD9BF /* Supporting Files */,
 			);
 			path = ParserExerciseTests;
@@ -221,6 +224,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4AB24311AA7FAFF00DE7F4D /* FlatMapPattern.swift in Sources */,
 				E4CE41601A974CA2009CD9BF /* ParserExerciseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -407,6 +411,7 @@
 				E4CE41651A974CA2009CD9BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E4CE41661A974CA2009CD9BF /* Build configuration list for PBXNativeTarget "ParserExerciseTests" */ = {
 			isa = XCConfigurationList;
@@ -415,6 +420,7 @@
 				E4CE41681A974CA2009CD9BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
