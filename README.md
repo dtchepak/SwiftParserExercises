@@ -1,4 +1,4 @@
-# SwiftParserExercises
+# Swift Parser Exercises
 Parser combinators exercise by Tony Morris/NICTA, ported to Swift from [the original Haskell version](https://github.com/NICTA/course/blob/af3e945d5eadcaf0a11a462e2ef7f5378b71d7f7/src/Course/Parser.hs).
  Please direct all credit to that original project, and attribute any mistakes to me.
 
