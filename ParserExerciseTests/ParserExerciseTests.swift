@@ -520,11 +520,59 @@ public func firstNameParser() -> Parser<String> {
     return TODO()
 }
 
+class Ex18_FirstNameParserExamples : XCTestCase {
+    func testFirstNameParser() {
+        let result = firstNameParser().parse("Daniel")
+        assertEqual(result, succeed("", "Daniel"))
+    }
+    func testParseUntilUnmatchedCharacter() {
+        let result = firstNameParser().parse("RobeRt")
+        assertEqual(result, succeed("Rt", "Robe"))
+    }
+    func testParseUntilUnmatchedCharacter2() {
+        let result = firstNameParser().parse("Matt$1")
+        assertEqual(result, succeed("$1", "Matt"))
+    }
+    func testFailOnNonMatching() {
+        let result = firstNameParser().parse("timothy")
+        assertEqual(result, failWithUnexpectedChar("t"))
+    }
+}
+
 // Return a parser for surname.
 // Surname starts with a capital letter and is followed by 5 or more lower-case letters
 public func surnameParser() -> Parser<String> {
     return TODO()
 }
+
+class Ex19_SurnameParserExamples : XCTestCase {
+    func testFirstNameParser() {
+        let result = surnameParser().parse("Something")
+        assertEqual(result, succeed("", "Something"))
+    }
+    func testParseUntilUnmatchedCharacter() {
+        let result = surnameParser().parse("Something2")
+        assertEqual(result, succeed("2", "Something"))
+    }
+    func testFailOnNonMatchingCapital() {
+        let result = surnameParser().parse("lowercase")
+        assertEqual(result, failWithUnexpectedChar("l"))
+    }
+    func testFailOnNotLongEnough() {
+        let result = surnameParser().parse("Last ")
+        assertEqual(result, failWithUnexpectedChar(" "))
+    }
+    func testFailOnNotLongEnough2() {
+        let result = surnameParser().parse("LastName 1")
+        assertEqual(result, failWithUnexpectedChar("N"))
+    }
+    func testFailOnNotLongEnough3() {
+        let result = surnameParser().parse("Last")
+        assertEqual(result, failWithUnexpectedEof())
+    }
+}
+
+
 // Return a bool indicating whether a person is a smoker.
 // Smoker field is true if "y", or non-smoker if "n"
 //
@@ -533,7 +581,7 @@ public func smokerParser() -> Parser<Bool> {
     return TODO()
 }
 
-class Ex18_SmokerParserExamples : XCTestCase {
+class Ex20_SmokerParserExamples : XCTestCase {
     func testY() {
         let result = smokerParser().parse("y")
         assertEqual(result, succeed("", true))
@@ -563,7 +611,7 @@ public func phoneBodyParser() -> Parser<String> {
     return TODO()
 }
 
-class Ex19_PhoneBodyExamples : XCTestCase {
+class Ex21_PhoneBodyExamples : XCTestCase {
     func testPhoneBodyParser() {
         let result = phoneBodyParser().parse("123-456")
         assertEqual(result, succeed("", "123-456"))
@@ -588,7 +636,7 @@ public func phoneParser() -> Parser<String> {
     return TODO()
 }
 
-class Ex20_PhoneParserExamples : XCTestCase {
+class Ex22_PhoneParserExamples : XCTestCase {
     func testValidPhone() {
         let result = phoneParser().parse("123-456#")
         assertEqual(result, succeed("", "123-456"))
@@ -623,7 +671,7 @@ public func personParser() -> Parser<Person> {
     return TODO()
 }
 
-class Ex21_PersonParserExamples : XCTestCase {
+class Ex23_PersonParserExamples : XCTestCase {
     func testValid() {
         let result = personParser().parse("123 Fred Clarkson y 123-456.789#")
         let expected = Person(age: 123, firstName: "Fred", surname: "Clarkson", smoker: true, phone: "123-456.789")
