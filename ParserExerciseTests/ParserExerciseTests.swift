@@ -69,7 +69,7 @@ public func valueParser<A>(a : A) -> Parser<A> {
     return TODO()
 }
 
-class ValueParserExamples : XCTestCase {
+class Ex01_ValueParserExamples : XCTestCase {
     func testValueParser() {
         let result = valueParser(2).parse("hello")
         assertEqual(result, succeed("hello", 2))
@@ -81,7 +81,7 @@ public func failed<A>() -> Parser<A> {
     return TODO()
 }
 
-class FailedParserExamples : XCTestCase {
+class Ex02_FailedParserExamples : XCTestCase {
     func testFailedParser() {
         let result : ParseResult<Int> = failed().parse("abc")
         assertEqual(result, failParse())
@@ -96,7 +96,7 @@ public func character() -> Parser<Character> {
     return TODO()
 }
 
-class CharacterParserExamples : XCTestCase {
+class Ex03_CharacterParserExamples : XCTestCase {
     func testCharacter() {
         let result = character().parse("abcd")
         assertEqual(result, succeed("bcd", "a"))
@@ -115,7 +115,7 @@ extension Parser {
     }
 }
 
-class MapParserExamples : XCTestCase {
+class Ex04_MapParserExamples : XCTestCase {
     func testMap() {
         let result = character().map(toUpper).parse("abc")
         assertEqual(result, succeed("bc", "A"))
@@ -144,7 +144,7 @@ extension Parser {
     }
 }
 
-public class FlatMapParserExamples : XCTestCase {
+class Ex05_FlatMapParserExamples : XCTestCase {
     let skipOneX : Parser<Character> =
                 character().flatMap({ c in
                     if c == "x" { return character() } // if c=="x", skip this character and parse the next one
@@ -180,7 +180,7 @@ public func >>><A,B>(first : Parser<A>, second : Parser<B>) -> Parser<B> {
     return TODO()
 }
 
-public class SkipParserExamples : XCTestCase {
+class Ex06_SkipParserExamples : XCTestCase {
     func testSkipParser() {
         let result = (character() >>> valueParser("x")).parse("abc")
         assertEqual(result, succeed("bc", "x"))
@@ -200,7 +200,7 @@ public func |||<A>(first: Parser<A>, second:Parser<A>) -> Parser<A> {
     return TODO()
 }
 
-public class OrParserExamples : XCTestCase {
+class Ex07_OrParserExamples : XCTestCase {
     func testOrWhenFirstSucceeds() {
         let result = (character() ||| valueParser("v")).parse("abc")
         assertEqual(result, succeed("bc", "a"))
@@ -235,7 +235,7 @@ public func atLeast1<A>(p : Parser<A>) -> Parser<[A]> {
 }
 
 // list and atLeast1 should both be completed before these examples should pass
-class ListParserExamples : XCTestCase {
+class Ex08_ListParserExamples : XCTestCase {
     func testList() {
         let result = list(character()).parse("abc")
         assertEqual(result, succeed("", ["a", "b", "c"]))
@@ -263,7 +263,7 @@ class ListParserExamples : XCTestCase {
 public func satisfy(p : Character -> Bool) -> Parser<Character> {
     return TODO()
 }
-class SatisfyParserExamples : XCTestCase {
+class Ex09_SatisfyParserExamples : XCTestCase {
     func testParseUpper() {
         let result = satisfy(isUpperCase).parse("Abc")
         assertEqual(result, succeed("bc", "A"))
@@ -284,7 +284,7 @@ public func charIs(c : Character) -> Parser<Character> {
     return TODO()
 }
 
-class CharIsParserExamples : XCTestCase {
+class Ex10_CharIsParserExamples : XCTestCase {
     func testCharIs() {
         let result = charIs("x").parse("xyz")
         assertEqual(result, succeed("yz", "x"))
@@ -306,7 +306,7 @@ public func digit() -> Parser<Character> {
     return TODO()
 }
 
-class DigitParserExamples : XCTestCase {
+class Ex11_DigitParserExamples : XCTestCase {
     func testDigit() {
         let result = digit().parse("123")
         assertEqual(result, succeed("23", "1"))
@@ -327,7 +327,7 @@ public func natural() -> Parser<Int> {
     return TODO()
 }
 
-class NaturalParserExamples : XCTestCase {
+class Ex12_NaturalParserExamples : XCTestCase {
     func testParseNatural() {
         let result = natural().parse("123")
         assertEqual(result, succeed("", 123))
@@ -356,7 +356,7 @@ public func space() -> Parser<Character> {
     return TODO()
 }
 
-class SpaceParserExamples : XCTestCase {
+class Ex13_SpaceParserExamples : XCTestCase {
     func testParseSpace() {
         let result = space().parse(" 123")
         assertEqual(result, succeed("123", " "))
@@ -382,7 +382,7 @@ public func spaces() -> Parser<String> {
     return TODO()
 }
 
-class SpacesParserExamples : XCTestCase {
+class Ex14_SpacesParserExamples : XCTestCase {
     func testParseSpaces() {
         let result = spaces().parse("    123")
         assertEqual(result, succeed("123", "    "))
@@ -429,7 +429,7 @@ public func alpha() -> Parser<Character> {
     return TODO()
 }
 
-class LowerUpperAlphaExamples : XCTestCase {
+class Ex15_LowerUpperAlphaExamples : XCTestCase {
     func testLower() {
         testParser(lower(), passWith: ("abc", "bc", "a"), failWith: ("XYZ", "X"))
     }
@@ -458,7 +458,7 @@ public func sequenceParser<A>(pp : [Parser<A>]) -> Parser<[A]> {
     return TODO()
 }
 
-class SequenceParserExamples : XCTestCase {
+class Ex16_SequenceParserExamples : XCTestCase {
     let exampleParsers = [ character(), charIs("x"), upper() ]
     func testSequence() {
         let result = sequenceParser(exampleParsers).map(charsToString).parse("axCdef")
@@ -478,7 +478,7 @@ public func thisMany<A>(n : Int, p : Parser<A>) -> Parser<[A]> {
     return TODO()
 }
 
-class ThisManyExamples : XCTestCase {
+class Ex17_ThisManyExamples : XCTestCase {
     func testThisMany() {
         let result = thisMany(4, upper()).map(charsToString).parse("ABCDefg")
         assertEqual(result, succeed("efg", "ABCD"))
@@ -533,7 +533,7 @@ public func smokerParser() -> Parser<Bool> {
     return TODO()
 }
 
-class SmokerParserExamples : XCTestCase {
+class Ex18_SmokerParserExamples : XCTestCase {
     func testY() {
         let result = smokerParser().parse("y")
         assertEqual(result, succeed("", true))
@@ -563,7 +563,7 @@ public func phoneBodyParser() -> Parser<String> {
     return TODO()
 }
 
-class PhoneBodyExamples : XCTestCase {
+class Ex19_PhoneBodyExamples : XCTestCase {
     func testPhoneBodyParser() {
         let result = phoneBodyParser().parse("123-456")
         assertEqual(result, succeed("", "123-456"))
@@ -588,7 +588,7 @@ public func phoneParser() -> Parser<String> {
     return TODO()
 }
 
-class PhoneParserExamples : XCTestCase {
+class Ex20_PhoneParserExamples : XCTestCase {
     func testValidPhone() {
         let result = phoneParser().parse("123-456#")
         assertEqual(result, succeed("", "123-456"))
@@ -623,7 +623,7 @@ public func personParser() -> Parser<Person> {
     return TODO()
 }
 
-class PersonParserExamples : XCTestCase {
+class Ex21_PersonParserExamples : XCTestCase {
     func testValid() {
         let result = personParser().parse("123 Fred Clarkson y 123-456.789#")
         let expected = Person(age: 123, firstName: "Fred", surname: "Clarkson", smoker: true, phone: "123-456.789")
