@@ -53,8 +53,7 @@ public func failWithParseError<A>(e : ParseError) -> ParseResult<A> { return .Er
 // * a parse error
 public struct Parser<A> {
     let p : Input -> ParseResult<A>
-    init(p : Input -> ParseResult<A>) { self.p = p }
-    
+
     public func parse(i : Input) -> ParseResult<A> { return self.p(i) }
 }
 public func TODO<A>() -> Parser<A> { return Parser({ i in .ErrorResult(.Failed("*** TODO ***"))}) }
